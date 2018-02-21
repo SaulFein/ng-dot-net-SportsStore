@@ -2,7 +2,7 @@
 
 services:
   database:
-    image: "microsoft/mssql-server-linux:ctp2-0"
+    image: "microsoft/mssql-server-linux:2017-GDR"
     ports:
       - 5100:1433
     environment:

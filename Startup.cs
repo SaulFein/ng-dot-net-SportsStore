@@ -4,10 +4,15 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.SpaServices.Webpack;
+using SportsStore.Models;
+using Microsoft.EntityFrameworkCore;
 
-namespace SportsStore {
-    public class Startup {
-        public Startup(IHostingEnvironment env) {
+namespace SportsStore
+{
+    public class Startup
+    {
+        public Startup(IHostingEnvironment env)
+        {
             var builder = new ConfigurationBuilder()
               .SetBasePath(env.ContentRootPath)
               .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -18,26 +23,25 @@ namespace SportsStore {
 
         public IConfigurationRoot Configuration { get; }
 
-        public void ConfigureServices(IServiceCollection services) {
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddDbContext<DataContext>(options =>
+                options.UseSqlServer(Configuration
+                    ["Data:Products:ConnectionString"]));
             services.AddMvc();
         }
 
-        public void Configure(IApplicationBuilder app, 
-                IHostingEnvironment env, ILoggerFactory loggerFactory) {
+        public void Configure(IApplicationBuilder app,
+                IHostingEnvironment env, ILoggerFactory loggerFactory)
+        {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
             app.UseDeveloperExceptionPage();
-            app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions {
+            app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
+            {
                 HotModuleReplacement = true
             });
-
-            //if (env.IsDevelopment()) {
-            //  app.UseDeveloperExceptionPage();
-            //  app.UseBrowserLink();
-            //} else {
-            //  app.UseExceptionHandler("/Home/Error");
-            //}
 
             app.UseStaticFiles();
 
@@ -46,6 +50,9 @@ namespace SportsStore {
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+
+            SeedData.SeedDatabase(app.ApplicationServices
+                .GetRequiredService<DataContext>());
         }
     }
 }
